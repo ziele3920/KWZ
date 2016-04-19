@@ -17,9 +17,7 @@ using namespace std;
  	vector<int> predecessors;
  };
  
-int main(int argc, char *argv[])
-{
-    string nazwa;
+     string nazwa;
     int liczba_zadan, liczba_polaczen, path = 0;
     char tmp;
     Task *zadania;
@@ -27,8 +25,11 @@ int main(int argc, char *argv[])
     vector<pair<int, int> > connections;
     vector<int> kolejnosc;
     int budget;
-     
-     ///////////////////////////////////////////////// czytanie ///////////////////////////////
+    vector<int> topologyOrder;	
+	int maxEF = 0; 
+ 
+ void Wczytaj() {
+ 	         ///////////////////////////////////////////////// czytanie ///////////////////////////////
     cout <<"podaj nazwe pliku: " << endl;
     cin >> nazwa;
     fstream plik;
@@ -55,8 +56,10 @@ int main(int argc, char *argv[])
         tmp.second--;
         connections.push_back(tmp);
     }
-            
-     //////////////////////////////////////////////////////// liczenie poprzednikwo ////////////////////////////////////
+ }
+ 
+ void LiczPoprzednikow() {
+ 	    //////////////////////////////////////////////////////// liczenie poprzednikwo ////////////////////////////////////
     
 	for(int i = 0; i < liczba_polaczen; ++i) {
 		zadania[connections[i].second].predecessors.push_back(connections[i].first);
@@ -68,11 +71,12 @@ int main(int argc, char *argv[])
             kolejnosc.push_back(i);
     	}
     }
-    
-    ///////////////////////////////////////////////// sortowanie topologiczne ///////////////////////////
+ }
+ 
+ void SortujTopologicznie() {
+ 	    ///////////////////////////////////////////////// sortowanie topologiczne ///////////////////////////
 	  
-	 vector<int> topologyOrder;
-	 
+
 	 while(kolejnosc.size()>0) {
 	 	int currTask = kolejnosc[0];
 	 	kolejnosc.erase(kolejnosc.begin());
@@ -90,9 +94,10 @@ int main(int argc, char *argv[])
      for(int i = 0; i < topologyOrder.size(); ++i){
      	cout << topologyOrder[i] << " ";
 	 }
-	 
-	
-	////////////////////////////////////////////////////////// liczenie ES EF ///////////////
+ }
+ 
+ void LiczEfEs() {
+ 		////////////////////////////////////////////////////////// liczenie ES EF ///////////////
 	
 	for(int i = 0; i < liczba_zadan; ++i) {
 		int currentTask = topologyOrder[i], newES = 0;
@@ -104,16 +109,20 @@ int main(int argc, char *argv[])
 		zadania[currentTask].EF = newES + zadania[currentTask].duration;
 
 	}
-	
-	//////////////////////////////// liczenie maxEF /////////////////////////////////
-	int maxEF = 0;
+ }
+ 
+ int LiczMaxEf() {
+ 		//////////////////////////////// liczenie maxEF /////////////////////////////////
+
 	for(int i = 0; i < liczba_zadan; ++i) {
 		if(zadania[i].EF > maxEF)
 			maxEF = zadania[i].EF;
 	}
-	
-	cout << endl << "process time " << maxEF << endl ;
-	/////////////////// liczenie LS, LF /////////////
+	return maxEF;
+ }
+ 
+ void LiczLsLf() {
+ 		/////////////////// liczenie LS, LF /////////////
 	for(int i = 0; i < liczba_zadan; ++i) {
 		zadania[i].LF = maxEF;
 		zadania[i].LS = zadania[i].LF - zadania[i].duration;
@@ -134,8 +143,10 @@ int main(int argc, char *argv[])
 	for (int i = 0; i < liczba_zadan; ++i) {
 		cout << zadania[i].ES << " " << zadania[i].EF << " " << zadania[i].LS << " " << zadania[i].LF << endl;
 	}
-	
-	// œcie¿ka krytyczna/////////////////////////////////////////
+ }
+ 
+ void WyznaczSciezkeKrytyczna() {
+ 		// œcie¿ka krytyczna/////////////////////////////////////////
 	cout << endl << "critical path" << endl;
 	while (path<maxEF) {
 		for (int i = 0; i<liczba_zadan; i++) {
@@ -145,4 +156,23 @@ int main(int argc, char *argv[])
 			}
 		}
 	}
+ }
+ 
+int main(int argc, char *argv[])
+{
+ 	Wczytaj();
+
+	LiczPoprzednikow();
+	
+	SortujTopologicznie();
+ 
+ 	LiczEfEs();
+ 	
+ 	cout << endl;
+ 	cout << "process time " << LiczMaxEf() << endl;
+    
+	LiczLsLf();
+	
+	WyznaczSciezkeKrytyczna();	 
+
 }
