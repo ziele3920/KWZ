@@ -24,9 +24,12 @@ using namespace std;
     int *liczba_poprzednikow;
     vector<pair<int, int> > connections;
     vector<int> kolejnosc;
-    int budget;
+    int budget, baseBudget;
     vector<int> topologyOrder;	
 	int maxEF = 0; 
+	vector<int>  criticalPath;
+	int totalCost = 0;
+	int *shortenList;
  
  void Wczytaj() {
  	         ///////////////////////////////////////////////// czytanie ///////////////////////////////
@@ -37,8 +40,10 @@ using namespace std;
     plik >> liczba_zadan;
     plik >> liczba_polaczen;
     plik >> budget;
+    baseBudget = budget;
     zadania = new Task[liczba_zadan];
     liczba_poprzednikow = new int[liczba_zadan];
+    shortenList = new int[liczba_zadan];
      
     for(int i =0; i < liczba_zadan; ++i) {  // czytanie d³ugoœci zadañ
     	zadania[i].id = i+1;
@@ -90,10 +95,6 @@ using namespace std;
 			 }
 		 }
 	 }
-	          cout << endl <<  "topologyOrder" << endl;
-     for(int i = 0; i < topologyOrder.size(); ++i){
-     	cout << topologyOrder[i] << " ";
-	 }
  }
  
  void LiczEfEs() {
@@ -139,18 +140,15 @@ using namespace std;
         }
     }
 	
-	cout << endl << endl << "ES EF LS LS" << endl;
-	for (int i = 0; i < liczba_zadan; ++i) {
-		cout << zadania[i].ES << " " << zadania[i].EF << " " << zadania[i].LS << " " << zadania[i].LF << endl;
-	}
  }
  
  void WyznaczSciezkeKrytyczna() {
  		// œcie¿ka krytyczna/////////////////////////////////////////
-	cout << endl << "critical path" << endl;
+	//cout << endl << "critical path" << endl;
 	while (path<maxEF) {
 		for (int i = 0; i<liczba_zadan; i++) {
 			if (zadania[i].ES == zadania[i].LS && zadania[i].LS == path) {
+				criticalPath.push_back(i);
 				cout << i + 1 << " " << zadania[i].ES << " " << zadania[i].EF << endl;
 				path = zadania[i].EF;
 			}
@@ -161,18 +159,38 @@ using namespace std;
 int main(int argc, char *argv[])
 {
  	Wczytaj();
-
 	LiczPoprzednikow();
-	
 	SortujTopologicznie();
  
  	LiczEfEs();
- 	
  	cout << endl;
- 	cout << "process time " << LiczMaxEf() << endl;
-    
+ 	cout << "no reduction scheduler time:  " << endl <<  LiczMaxEf() << endl;
 	LiczLsLf();
+	WyznaczSciezkeKrytyczna();	
 	
-	WyznaczSciezkeKrytyczna();	 
+	
+		for(int i = 0; i < liczba_zadan; ++i)
+			shortenList[i] = 0;
+	
+	for(int i = criticalPath.size()-1; i > -1 ; --i) {
+		int newDuration = zadania[criticalPath[i]].minDuration;
+		int oldDuration = zadania[criticalPath[i]].duration;
+		int cost = zadania[criticalPath[i]].shortenCost;
+		while((oldDuration -  newDuration) * cost > budget) 
+			++newDuration;
+		zadania[criticalPath[i]].duration = newDuration;
+		budget -= (oldDuration -  newDuration) * cost;
+		shortenList[criticalPath[i]] = oldDuration -  newDuration;
+	}
 
+
+	maxEF = 0;
+	LiczEfEs();
+ 	cout << "reduction scheduler time:" << endl << LiczMaxEf() << endl;
+ 	cout << "reduction cost: " << endl << baseBudget-budget << endl;
+ 	cout << "reduction:" << endl;
+ 		for(int i = 0; i < liczba_zadan; ++i)
+		cout << shortenList[i] << " ";
+		
+ 	
 }
