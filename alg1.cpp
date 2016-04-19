@@ -30,7 +30,6 @@ using namespace std;
 	vector<int>  criticalPath;
 	int totalCost = 0;
 	int *shortenList;
-	int maxRed = 1;
  
  void Wczytaj() {
  	         ///////////////////////////////////////////////// czytanie ///////////////////////////////
@@ -111,9 +110,6 @@ using namespace std;
 		zadania[currentTask].EF = newES + zadania[currentTask].duration;
 
 	}
-	//for(int i = 0; i < liczba_zadan; ++i) {
-//		cout << zadania[i].ES << " " << zadania[i].EF << endl;
-	//}
  }
  
  int LiczMaxEf() {
@@ -160,81 +156,32 @@ using namespace std;
 	}
  }
  
- int Alg1Mod(int i ) {
-		int newDuration = zadania[criticalPath[i]].minDuration;
-		int oldDuration = zadania[criticalPath[i]].duration;
-		int cost = zadania[criticalPath[i]].shortenCost;
-		while((oldDuration -  newDuration) * cost > budget) 
-			++newDuration;
-		zadania[criticalPath[i]].duration = newDuration;
-		budget -= (oldDuration -  newDuration) * cost;
-		shortenList[criticalPath[i]] += oldDuration -  newDuration;
-		return oldDuration -  newDuration;
- }
- 
- void Alg1() {
- 		for(int i = criticalPath.size()-1; i > -1 ; --i) {
-		int newDuration = zadania[criticalPath[i]].minDuration;
-		int oldDuration = zadania[criticalPath[i]].duration;
-		int cost = zadania[criticalPath[i]].shortenCost;
-		while((oldDuration -  newDuration) * cost > budget) 
-			++newDuration;
-		zadania[criticalPath[i]].duration = newDuration;
-		budget -= (oldDuration -  newDuration) * cost;
-		shortenList[criticalPath[i]] += oldDuration -  newDuration;
-	}
- }
- 
- void Count() {
-	LiczEfEs();
-	LiczMaxEf();
-	LiczLsLf();
-	WyznaczSciezkeKrytyczna();	
-	
-}
-
-void Recount() {
-	maxEF = 0;
-	criticalPath.clear();
-	path = 0;
-	
-	Count();
-	
-}
- 
 int main(int argc, char *argv[])
 {
  	Wczytaj();
 	LiczPoprzednikow();
 	SortujTopologicznie();
  
- Count();
-
- 	cout << "no reduction scheduler time:  " << endl <<  maxEF << endl;
-	
+ 	LiczEfEs();
+ 	cout << endl;
+ 	cout << "no reduction scheduler time:  " << endl <<  LiczMaxEf() << endl;
+	LiczLsLf();
+	WyznaczSciezkeKrytyczna();	
 	
 	
 		for(int i = 0; i < liczba_zadan; ++i)
 			shortenList[i] = 0;
-			int i = 0;
-			
-		while(budget > 0) {
-			++i;
-			cout << criticalPath.size() << endl;
-			if(criticalPath.size()-1-i < 0)
-			break;
- 		
- 		if(criticalPath.size() == 0)
- 		break;
- 		if(Alg1Mod(criticalPath.size()-1-i) == 0) {
- 			Alg1();
- 			break;
-		 }
-		 Recount();
-	 }
-	//for(int i = criticalPath.size()-1; i > -1 ; --i) {
-	//Alg1();
-	//}
+	
+	for(int i = criticalPath.size()-1; i > -1 ; --i) {
+		int newDuration = zadania[criticalPath[i]].minDuration;
+		int oldDuration = zadania[criticalPath[i]].duration;
+		int cost = zadania[criticalPath[i]].shortenCost;
+		while((oldDuration -  newDuration) * cost > budget) 
+			++newDuration;
+		zadania[criticalPath[i]].duration = newDuration;
+		budget -= (oldDuration -  newDuration) * cost;
+		shortenList[criticalPath[i]] = oldDuration -  newDuration;
+	}
 
 
 	maxEF = 0;
